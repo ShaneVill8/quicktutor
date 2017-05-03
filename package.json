@@ -23,6 +23,7 @@
     "cookie-parser": "*",
     "express": "*",
     "express-session": "*",
+    "express-mysql-session": "*",
     "express-flash": "*",
     "express-validator": "*",
     "mysql": "*",
