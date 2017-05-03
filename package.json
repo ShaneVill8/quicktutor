@@ -1,0 +1,31 @@
+{
+  "name": "quicktutor",
+  "version": "1.0.0",
+  "description": "REST API server for quicktutor app",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vdinovi/quicktutor.git"
+  },
+  "author": "Vittorio Dinovi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vdinovi/quicktutor/issues"
+  },
+  "homepage": "https://github.com/vdinovi/quicktutor#readme",
+  "dependencies": {
+    "bcrypt": "*",
+    "body-parser": "*",
+    "connect-flash": "*",
+    "cookie-parser": "*",
+    "express": "*",
+    "express-session": "*",
+    "express-flash": "*",
+    "express-validator": "*",
+    "mysql": "*",
+    "passport": "*"
+  }
+}
