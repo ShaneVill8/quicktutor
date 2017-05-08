@@ -2,8 +2,11 @@ var db = require('../db.js');
 var crypto = require('crypto');
 var session = require('express-session')
 
-var User = function(data) {
-    this.data = data;
+var User = function(id, email, firstname, lastname ) {
+    this.id = id;
+    this.email = email;
+    this.firstname = firstname;
+    this.lastname = lastname;
 }
 
 User.prototype.data = {};
@@ -25,19 +28,20 @@ User.authenticate = function(email, password, callback) {
     User.findByEmail(email, function(err, user) {
         if (err)
             callback(err)
-        db.query('SELECT password, salt FROM Users WHERE email ='+db.escape(email), function(err, results, fields) {
-            if (err)
-                callback(err.code)
-            if (results.length < 1)
-                callback('user not found')
-            console.log(results);
-            var hash = sha512(password, results[0].salt);
-            if (hash.value != results[0].password)
-                callback('invalid password')
-            User.findByEmail(email, function(err, user) {
-                callback(null, user);
+        else {
+            db.query('SELECT password, salt FROM Users WHERE email ='+db.escape(email), function(err, results, fields) {
+                if (err)
+                    callback(err.code)
+                if (results.length < 1)
+                    callback('user not found')
+                var hash = sha512(password, results[0].salt);
+                if (hash.value != results[0].password)
+                    callback('invalid password')
+                User.findByEmail(email, function(err, user) {
+                    callback(null, user);
+                });
             });
-        });
+        }
     });
 }
 
@@ -48,10 +52,26 @@ User.create = function(email, password, firstname, lastname, callback) {
         [email, hash.value, hash.salt, firstname, lastname], function(err, results, fields) {
             if (err)
                 callback(err.code);
-            User.findByEmail(email, function(err, user) {
-                callback(null, user);
-            });
+            else {
+                User.findByEmail(email, function(err, user) {
+                    if (err)
+                        callback(err)
+                    else 
+                        callback(null, user);
+                });
+            }
         });
+}
+
+User.delete = function(id, callback) {
+    db.query('DELETE FROM Users WHERE id='+db.escape(id), function(err, results, fields) {
+        if (err)
+            callback(err.code);
+        else if (results.affectedRows < 1)
+            callback('delete fail');
+        else
+            callback(null, 'success');
+    });
 }
 
 /* Retreieve user by their id */
@@ -70,7 +90,10 @@ User.findByEmail = function(email, callback) {
     db.query('SELECT id, email, firstname, lastname FROM Users WHERE email = '+db.escape(email), function (err, results, fields) {
         if (err)
             callback(err);
-        callback(null, new User(id, email, firstname, lastname));
+        else if (results.length < 1)
+            callback('NOT_FOUND');
+        else 
+            callback(null, new User(results[0].id, results[0].email, results[0].firstname, results[0].lastname));
     });
 }
 

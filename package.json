@@ -17,16 +17,13 @@
   },
   "homepage": "https://github.com/vdinovi/quicktutor#readme",
   "dependencies": {
-    "bcrypt": "*",
     "body-parser": "*",
-    "connect-flash": "*",
     "cookie-parser": "*",
     "express": "*",
     "express-session": "*",
     "express-mysql-session": "*",
-    "express-flash": "*",
-    "express-validator": "*",
-    "mysql": "*",
-    "passport": "*"
+    "express-validation": "*",
+    "joi": "*",
+    "mysql": "*"
   }
 }
