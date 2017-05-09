@@ -20,13 +20,17 @@ var routes = require('./routes/index');
 var app = express();
 
 // Body Parser Middelware
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(bodyParser.json());
 
 // Express Session
 app.use(session({
     secret: 'my-secret-key',
     saveUninitialized: false, 
-    resave: true
+    resave: true,
+    store: sessionStore
 }));
 
 app.use('/', routes);

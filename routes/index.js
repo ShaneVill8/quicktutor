@@ -3,9 +3,14 @@ var Joi = require('joi');
 var validationSchemas = require('./validation');
 var User = require('../models/user');
 var router = express.Router();
+var path = require('path');
 
 router.get('/', function(req, res) {
-    res.write("GET / -> index");
+    if (req.session)
+        res.write("Session: "+JSON.stringify(req.session)+"\n");
+    else
+        res.write("No session exists");
+    res.write("GET / -> index\n");
     res.statusCode = 200;
     res.end();
 });
@@ -90,6 +95,12 @@ router.post('/users/delete', function(req, res) {
     });
 });
 
+
+/* @TEST endpoint for user actions -- uses /test/login.hml */
+router.get('/users', function(req, res) {
+    res.sendFile(path.resolve('test/user.html'));
+});
+
 /* POST /users/login
  * Log a user in
  * ARGS:
@@ -113,6 +124,13 @@ router.post('/users/login', function(req, res) {
                     res.statusCode = 400;
                     res.end();
                 } else {
+                    req.session.user = user;
+                    req.session.save(function(err) {
+                        if (err)
+                            console.log("Failed to save session: "+err);
+                        else
+                            console.log("Successfully saved session");
+                    });
                     res.write('POST /users/auth -> Succesfully authenticated User');
                     res.statusCode = 200;
                     res.end();
@@ -122,5 +140,23 @@ router.post('/users/login', function(req, res) {
     });
 }); 
 
+
+/* POST /users/logout
+ * Log a user out
+ */
+router.post('/users/logout', function(req, res) {
+    req.session.destroy(function(err) {
+        if (err) {
+            console.log("Failed to log user out:"+err);
+            res.statusCode = 400;
+            res.end();
+        }
+        else {
+            res.write("POST /users/logout -> Successfully logged out User");
+            res.statusCode = 200;
+            res.end();
+        }
+    });
+});
 
 module.exports = router;
