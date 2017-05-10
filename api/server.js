@@ -29,6 +29,7 @@ app.use(bodyParser.json());
 app.use(session({
     secret: 'my-secret-key',
     saveUninitialized: false, 
+    maxAge: 320000,
     resave: true,
     store: sessionStore
 }));

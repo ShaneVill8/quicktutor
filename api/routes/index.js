@@ -2,8 +2,19 @@ var express = require('express');
 var Joi = require('joi');
 var validationSchemas = require('./validation');
 var User = require('../models/user');
+var Listing = require('../models/listing');
 var router = express.Router();
 var path = require('path');
+
+
+validateCookie = function(req) {
+    if (!req.session || !req.session.cookie || !req.session.user)
+        return false;
+    else if (req.session.cookie.expires < Date.now())
+        return false;
+    else
+        return true;
+}
 
 router.get('/', function(req, res) {
     if (req.session)
@@ -124,6 +135,7 @@ router.post('/users/login', function(req, res) {
                     res.statusCode = 400;
                     res.end();
                 } else {
+                    req.session.cookie.expires = new Date(Date.now() + 60000); /*@TODO change from 1m expire time */
                     req.session.user = user;
                     req.session.save(function(err) {
                         if (err)
@@ -156,6 +168,75 @@ router.post('/users/logout', function(req, res) {
             res.statusCode = 200;
             res.end();
         }
+    });
+});
+
+/* POST /listings/new 
+ * Post a new listing. Poster must be logged in.
+ * ARGS:
+ *   1. Title
+ *   2. Description
+ *   3. Duration
+ */
+router.post('/listings/new', function(req, res) {
+    if (!validateCookie(req)) {
+        res.write("Please login first");
+        res.statusCode = 400;
+        res.end();
+    }
+    else {
+        Joi.validate({
+            title: req.body.title,
+            description: req.body.description,
+            duration: req.body.duration
+        }, validationSchemas.newlisting, function(err, value) {
+            if (err) {
+                console.log(err);
+                res.statusCode = 400;
+                res.end();
+            }
+            else {
+                Listing.create(req.session.user.id, req.body.title, req.body.description, 
+                    req.body.duration, function(err, listing) {
+                        if (err) {
+                            console.log(err);
+                            res.statusCode = 500;
+                            res.end();
+                        } 
+                        else {
+                            //req.session.listings[listing.id] = listing;
+                            res.write('POST /listing/new -> Successful Listing creation'); 
+                            res.statusCode = 200; 
+                            res.end();
+                        }
+
+                    });
+            }
+        });
+    }
+});
+
+
+/* GET /listings
+ * Get all listings
+ */
+ 
+router.get('/listings', function(req, res) {
+    Listing.getAll(function(err, listings) {
+        if (err) {
+            console.log(err);
+            res.statusCode = 500;
+            res.end;
+        }
+        else {
+            res.write('<html><table><tr><th>ID</th><th>Owner</th><th>Title</th><th>Description</th><th>Time</th><th>Duration</th></tr>');
+            for (var i = 0; i < listings.length; ++i) {
+                res.write('<tr><td>'+listings[i].id+'</td><td>'+listings[i].owner+'</td><td>'+listings[i].title+'</td><td>'+listings[i].description+'</td><td>'+listings[i].time+'</td><td>'+listings[i].duration+'</td></tr>');
+            }
+            res.write('</tr><\html>');
+            res.statusCode = 200;
+            res.end();
+        }        
     });
 });
 

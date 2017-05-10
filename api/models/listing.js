@@ -1,10 +1,12 @@
+var db = require('../db.js');
+var session = require('express-session')
 
 
 /* Listing Object
  *   Students will submit these items and tutors will respond to them.
  *   Fields are WIP
  */
-var Listing = function(id, owner, title, descr, time, dur, /*,price, responders, tags*/) {
+var Listing = function(id, owner, title, descr, time, dur /*,price, responders, tags*/) {
     this.id = id;
     this.owner = owner; /* User ID for the listing's creator */
     this.title = title; /* Title of the listing */
@@ -14,11 +16,11 @@ var Listing = function(id, owner, title, descr, time, dur, /*,price, responders,
 }
 
 /* Create a new Listing */
-Listing.create = function(owner, title, description, duration) {
-    db.query('INSERT INTO Listings (owner, title, descirption, duration) VALUES(?, ?, ?, ?, ?)', 
+Listing.create = function(owner, title, description, duration, callback) {
+    db.query('INSERT INTO Listings (owner, title, description, duration) VALUES(?, ?, ?, ?)', 
         [owner, title, description, duration], function(err, results, fields) {
             if (err)
-                callback(err.code);
+                callback(err);
             else {
                 Listing.findById(results.insertId, function(err, listing) {
                     if (err)
@@ -51,7 +53,7 @@ Listing.findById = function(id, callback) {
         else {
             listing = new Listing(results[0].id, results[0].owner,
                 results[0].title, results[0].description,
-                results[0].time, reuslts[0].duration);
+                results[0].time, results[0].duration);
             callback(null, listing);
         }
     });
@@ -62,6 +64,7 @@ Listing.getAll = function(callback) {
         if (err)
             callback(err.code);
         else {
+            var listings = [];
             for (var i = 0; i < results.length; ++i) {
                 listings.push(new Listing(results[i].id, results[i].owner,
                     results[i].title, results[i].description, results[i].time,
@@ -74,7 +77,7 @@ Listing.getAll = function(callback) {
 
 /* Update an existing listing */
 Listing.prototype.save = function(callback) {
-    var self = this; // Give query scope of user object
+    var self = this; // Give query scope of listing object
     db.query('UPDATE Listings SET owner = ?, title = ?, description = ?, duration = ? WHERE id = ?', [self.owner, self.title, self.description, self.duration, self.id], function(err, results, fields) {
         if (err)
             callback(err.code);
@@ -82,7 +85,5 @@ Listing.prototype.save = function(callback) {
             callback(null, self); 
     });
 }
-
-
 
 module.exports = Listing;
