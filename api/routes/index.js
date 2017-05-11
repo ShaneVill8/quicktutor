@@ -64,6 +64,7 @@ router.post('/users/new', function(req, res) {
     });
 });
 
+
 /* POST /users/delete
  * Delete a specified user
  * ARGS:
@@ -111,6 +112,7 @@ router.post('/users/delete', function(req, res) {
 router.get('/users', function(req, res) {
     res.sendFile(path.resolve('test/user.html'));
 });
+
 
 /* POST /users/login
  * Log a user in
@@ -171,6 +173,7 @@ router.post('/users/logout', function(req, res) {
     });
 });
 
+
 /* POST /listings/new 
  * Post a new listing. Poster must be logged in.
  * ARGS:
@@ -216,17 +219,64 @@ router.post('/listings/new', function(req, res) {
     }
 });
 
+/* GET /listings/(id)
+ * Get details about a specified listing
+ */
+router.get('/listings/:id', function(req, res) {
+    Listing.findById(req.params.id, function(err, listing) {
+        if (err) {
+            if (err == 'NOT_FOUND')
+                res.statusCode = 404;
+            else
+                res.statusCode = 500;
+            console.log(err);
+            res.write(err);
+            res.end();
+        }
+        else {
+            res.write("{ 'id': "+listing.id+", 'owner': "+listing.owner+", 'title': "+listing.title+"'description': "+listing.description+", 'time': "+listing.time+", 'duration': "+listing.duration+" }");
+            res.statusCode = 200;
+            res.end();
+        }
+    });
+});
+
+
+/* POST /listings/(id)/delete
+ * Delete a specified listing. Must be logged in as owner of the id.
+ * ARGS:
+ *  1. id
+ */
+router.delete('/listings/:id', function(req, res) {
+    Listing.delete(req.params.id, function(err, status) {
+        if (err) {
+            if (err == 'NOT_FOUND')
+                res.statusCode = 404;
+            else
+                res.statusCode = 500;
+            console.log(err);
+            res.write(err);
+            res.end();
+        }
+        else {
+            res.statusCode = 200;
+            res.write("Listing "+req.params.id+" succesfully deleted");
+            res.end();
+        }
+    });
+
+});
+
 
 /* GET /listings
  * Get all listings
- */
- 
+ */ 
 router.get('/listings', function(req, res) {
     Listing.getAll(function(err, listings) {
         if (err) {
             console.log(err);
             res.statusCode = 500;
-            res.end;
+            res.end();
         }
         else {
             res.write('<html><table><tr><th>ID</th><th>Owner</th><th>Title</th><th>Description</th><th>Time</th><th>Duration</th></tr>');

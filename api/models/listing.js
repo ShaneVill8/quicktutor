@@ -37,9 +37,9 @@ Listing.delete = function(id, callback) {
         if (err)
             callback(err.code);
         else if (results.affectedRows < 1)
-            callback('delete fail');
+            callback('NOT_FOUND');
         else
-            callback(null, 'success');
+            callback(null, 'SUCCESS');
     });
 }
 
